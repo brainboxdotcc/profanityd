@@ -38,5 +38,5 @@ Dictionary files are loaded from the `dictionaries` directory at startup. You mu
 | Zalgo                    | ❌                              | ✅        |
 | Mathematical alphabets   | ❌                              | ✅        |
 | Accent flattening        | Detection appears inconsistent  | ✅        |
-| Repeated letters         | Unknown                         | ✅        |
+| Repeated letters         | ✅                              | ✅        |
 

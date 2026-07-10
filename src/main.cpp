@@ -11,6 +11,7 @@
 #include "accent_flatten.h"
 #include "homoglyphs.h"
 #include "strip_zalgo.h"
+#include "strip_formatting.h"
 
 using namespace drogon;
 namespace fs = std::filesystem;
@@ -22,6 +23,7 @@ void normalise_english(std::string& text)
 {
 	strip_zero_width(text);
 	strip_zalgo(text);
+	strip_formatting(text);
 	fold_homoglyphs(text);
 	flatten_accents(text);
 	lowercase(text);
@@ -33,6 +35,7 @@ void normalise(std::string& s)
 {
 	lowercase(s);
 	strip_zero_width(s);
+	strip_formatting(s);
 	leetspeak(s);
 	collapse_repeated(s);
 }
@@ -97,47 +100,40 @@ bool contains(const std::string& word, const std::string& english_word, const st
 
 	return false;
 }
-bool contains(const std::string& word, const std::vector<std::string>& langs)
-{
-	if (langs.empty())
-		return all_words.find(word) != all_words.end();
-
-	for (const auto& l : langs) {
-		auto i = lang_words.find(l);
-		if (i != lang_words.end() && i->second.find(word) != i->second.end())
-			return true;
-	}
-
-	return false;
-}
 
 std::string censor(const std::string& text, char replacement, const std::vector<std::string>& langs)
 {
 	std::string out, token;
 
 	auto flush = [&]() {
-		if (!token.empty()) {
-			auto normalised = token;
-			normalise(normalised);
-
-			auto english = token;
-			normalise_english(english);
-
-			if (contains(normalised, english, langs))
-				out.append(token.size(), replacement);
-			else
-				out += token;
-
-			token.clear();
+		if (token.empty()) {
+			return;
 		}
+
+		auto normalised = token;
+		normalise(normalised);
+
+		auto english = token;
+		normalise_english(english);
+
+		if (
+			!normalised.empty() &&
+			contains(normalised, english, langs)
+		) {
+			out.append(english.size(), replacement);
+		} else {
+			out += token;
+		}
+
+		token.clear();
 	};
 
 	for (unsigned char c : text) {
-		if (c < 0x80 && (std::isspace(c) || std::ispunct(c))) {
+		if (c < 0x80 && std::isspace(c)) {
 			flush();
-			out += (char)c;
+			out += static_cast<char>(c);
 		} else {
-			token += (char)c;
+			token += static_cast<char>(c);
 		}
 	}
 

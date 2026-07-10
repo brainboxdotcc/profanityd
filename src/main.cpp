@@ -8,12 +8,22 @@
 #include "strip_zero_width.h"
 #include "leetspeak.h"
 #include "collapse_repeated.h"
+#include "accent_flatten.h"
 
 using namespace drogon;
 namespace fs = std::filesystem;
 
 std::unordered_set<std::string> all_words;
 std::unordered_map<std::string, std::unordered_set<std::string>> lang_words;
+
+void normalise_english(std::string& text)
+{
+	strip_zero_width(text);
+	flatten_accents(text);
+	lowercase(text);
+	leetspeak(text);
+	collapse_repeated(text);
+}
 
 void normalise(std::string& s)
 {
@@ -35,14 +45,19 @@ void load_dictionaries()
 		if (!in)
 			continue;
 
-		auto& dict = lang_words[f.path().stem().string()];
+		std::string language = f.path().stem().string();
+		auto& dict = lang_words[language];
 		std::string line;
 
 		while (std::getline(in, line)) {
 			if (line.empty())
 				continue;
 
-			normalise(line);
+			if (language == "en") {
+				normalise_english(line);
+			} else {
+				normalise(line);
+			}
 			dict.insert(line);
 			all_words.insert(line);
 			++count;
@@ -50,9 +65,34 @@ void load_dictionaries()
 	}
 
 	std::cout << "Loaded " << count << " words in "
-	          << lang_words.size() << " languages\n";
+			  << lang_words.size() << " languages\n";
 }
 
+bool contains(const std::string& word, const std::string& english_word, const std::vector<std::string>& langs)
+{
+	if (langs.empty()) {
+		if (all_words.contains(word))
+			return true;
+
+		const auto english = lang_words.find("en");
+		return english != lang_words.end() &&
+			english->second.contains(english_word);
+	}
+
+	for (const auto& lang : langs) {
+		const auto dictionary = lang_words.find(lang);
+
+		if (dictionary == lang_words.end())
+			continue;
+
+		const auto& candidate = lang == "en" ? english_word : word;
+
+		if (dictionary->second.contains(candidate))
+			return true;
+	}
+
+	return false;
+}
 bool contains(const std::string& word, const std::vector<std::string>& langs)
 {
 	if (langs.empty())
@@ -73,10 +113,13 @@ std::string censor(const std::string& text, char replacement, const std::vector<
 
 	auto flush = [&]() {
 		if (!token.empty()) {
-			auto n = token;
-			normalise(n);
+			auto normalised = token;
+			normalise(normalised);
 
-			if (contains(n, langs))
+			auto english = token;
+			normalise_english(english);
+
+			if (contains(normalised, english, langs))
 				out.append(token.size(), replacement);
 			else
 				out += token;

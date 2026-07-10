@@ -80,7 +80,7 @@ bool contains(const std::string& word, const std::string& english_word, const st
 
 		const auto english = lang_words.find("en");
 		return english != lang_words.end() &&
-			english->second.contains(english_word);
+			english->second.find(english_word) != english->second.end();
 	}
 
 	for (const auto& lang : langs) {
@@ -91,7 +91,7 @@ bool contains(const std::string& word, const std::string& english_word, const st
 
 		const auto& candidate = lang == "en" ? english_word : word;
 
-		if (dictionary->second.contains(candidate))
+		if (dictionary->second.find(candidate) != dictionary->second.end())
 			return true;
 	}
 
@@ -100,7 +100,7 @@ bool contains(const std::string& word, const std::string& english_word, const st
 bool contains(const std::string& word, const std::vector<std::string>& langs)
 {
 	if (langs.empty())
-		return all_words.contains(word);
+		return all_words.find(word) != all_words.end();
 
 	for (const auto& l : langs) {
 		auto i = lang_words.find(l);

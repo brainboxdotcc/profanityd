@@ -9,6 +9,8 @@
 #include "leetspeak.h"
 #include "collapse_repeated.h"
 #include "accent_flatten.h"
+#include "homoglyphs.h"
+#include "strip_zalgo.h"
 
 using namespace drogon;
 namespace fs = std::filesystem;
@@ -19,6 +21,8 @@ std::unordered_map<std::string, std::unordered_set<std::string>> lang_words;
 void normalise_english(std::string& text)
 {
 	strip_zero_width(text);
+	strip_zalgo(text);
+	fold_homoglyphs(text);
 	flatten_accents(text);
 	lowercase(text);
 	leetspeak(text);

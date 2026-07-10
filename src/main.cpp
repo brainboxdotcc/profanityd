@@ -75,7 +75,7 @@ void load_dictionaries()
 bool contains(const std::string& word, const std::string& english_word, const std::vector<std::string>& langs)
 {
 	if (langs.empty()) {
-		if (all_words.contains(word))
+		if (all_words.find(word) != all_words.end())
 			return true;
 
 		const auto english = lang_words.find("en");
@@ -104,7 +104,7 @@ bool contains(const std::string& word, const std::vector<std::string>& langs)
 
 	for (const auto& l : langs) {
 		auto i = lang_words.find(l);
-		if (i != lang_words.end() && i->second.contains(word))
+		if (i != lang_words.end() && i->second.find(word) != i->second.end())
 			return true;
 	}
 

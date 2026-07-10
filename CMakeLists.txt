@@ -15,41 +15,41 @@ find_package(Threads REQUIRED)
 find_package(Drogon CONFIG REQUIRED)
 
 target_compile_definitions(${PROJECT_NAME}
-    PRIVATE
-        SPDLOG_FMT_EXTERNAL=ON
+	PRIVATE
+		SPDLOG_FMT_EXTERNAL=ON
 )
 
 target_include_directories(${PROJECT_NAME}
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
-        /usr/include/jsoncpp
+	PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}/include
+		/usr/include/jsoncpp
 )
 
 target_compile_options(${PROJECT_NAME}
-    PRIVATE
-        -g
-        -O2
-        -Wall
-        -Wno-unused-private-field
-        -Wno-psabi
-        -Wempty-body
-        -Wignored-qualifiers
-        -Wimplicit-fallthrough
-        -Wmissing-field-initializers
-        -Wsign-compare
-        -Wtype-limits
-        -Wuninitialized
-        -Wshift-negative-value
+	PRIVATE
+		-g
+		-O2
+		-Wall
+		-Wno-unused-private-field
+		-Wno-psabi
+		-Wempty-body
+		-Wignored-qualifiers
+		-Wimplicit-fallthrough
+		-Wmissing-field-initializers
+		-Wsign-compare
+		-Wtype-limits
+		-Wuninitialized
+		-Wshift-negative-value
 )
 
 target_link_libraries(${PROJECT_NAME}
-    PRIVATE
-        Drogon::Drogon
-        Threads::Threads
+	PRIVATE
+		Drogon::Drogon
+		Threads::Threads
 )
 
 # GCC < 9 requires a separate filesystem library.
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU"
-    AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9)
-    target_link_libraries(${PROJECT_NAME} PRIVATE stdc++fs)
+	AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9)
+	target_link_libraries(${PROJECT_NAME} PRIVATE stdc++fs)
 endif()

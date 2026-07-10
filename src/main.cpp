@@ -19,8 +19,7 @@ namespace fs = std::filesystem;
 std::unordered_set<std::string> all_words;
 std::unordered_map<std::string, std::unordered_set<std::string>> lang_words;
 
-void normalise_english(std::string& text)
-{
+void normalise_english(std::string& text) {
 	strip_zero_width(text);
 	strip_zalgo(text);
 	strip_formatting(text);
@@ -31,8 +30,7 @@ void normalise_english(std::string& text)
 	collapse_repeated(text);
 }
 
-void normalise(std::string& s)
-{
+void normalise(std::string& s) {
 	lowercase(s);
 	strip_zero_width(s);
 	strip_formatting(s);
@@ -40,26 +38,25 @@ void normalise(std::string& s)
 	collapse_repeated(s);
 }
 
-void load_dictionaries()
-{
+void load_dictionaries() {
 	size_t count = 0;
 
 	for (const auto& f : fs::directory_iterator("../dictionaries")) {
-		if (!f.is_regular_file() || f.path().extension() != ".txt")
+		if (!f.is_regular_file() || f.path().extension() != ".txt") {
 			continue;
-
+		}
 		std::ifstream in(f.path());
-		if (!in)
+		if (!in) {
 			continue;
-
+		}
 		std::string language = f.path().stem().string();
 		auto& dict = lang_words[language];
 		std::string line;
 
 		while (std::getline(in, line)) {
-			if (line.empty())
+			if (line.empty()) {
 				continue;
-
+			}
 			if (language == "en") {
 				normalise_english(line);
 			} else {
@@ -75,34 +72,32 @@ void load_dictionaries()
 			  << lang_words.size() << " languages\n";
 }
 
-bool contains(const std::string& word, const std::string& english_word, const std::vector<std::string>& langs)
-{
+bool contains(const std::string& word, const std::string& english_word, const std::vector<std::string>& langs) {
 	if (langs.empty()) {
-		if (all_words.find(word) != all_words.end())
+		if (all_words.find(word) != all_words.end()) {
 			return true;
-
+		}
 		const auto english = lang_words.find("en");
-		return english != lang_words.end() &&
-			english->second.find(english_word) != english->second.end();
+		return english != lang_words.end() && english->second.find(english_word) != english->second.end();
 	}
 
 	for (const auto& lang : langs) {
 		const auto dictionary = lang_words.find(lang);
 
-		if (dictionary == lang_words.end())
+		if (dictionary == lang_words.end()) {
 			continue;
-
+		}
 		const auto& candidate = lang == "en" ? english_word : word;
 
-		if (dictionary->second.find(candidate) != dictionary->second.end())
+		if (dictionary->second.find(candidate) != dictionary->second.end()) {
 			return true;
+		}
 	}
 
 	return false;
 }
 
-std::string censor(const std::string& text, char replacement, const std::vector<std::string>& langs)
-{
+std::string censor(const std::string& text, char replacement, const std::vector<std::string>& langs) {
 	std::string out, token;
 
 	auto flush = [&]() {
@@ -116,10 +111,7 @@ std::string censor(const std::string& text, char replacement, const std::vector<
 		auto english = token;
 		normalise_english(english);
 
-		if (
-			!normalised.empty() &&
-			contains(normalised, english, langs)
-		) {
+		if (!normalised.empty() && contains(normalised, english, langs)) {
 			out.append(english.size(), replacement);
 		} else {
 			out += token;
@@ -142,35 +134,36 @@ std::string censor(const std::string& text, char replacement, const std::vector<
 	return out;
 }
 
-int main()
-{
+int main() {
+
 	load_dictionaries();
 
 	app()
-		.enableRunAsDaemon()
-		.setThreadNum(std::thread::hardware_concurrency())
-		.setClientMaxBodySize(128 * 1024)
-		.registerHandler("/bad-word-filter",
-		[](const HttpRequestPtr& req,
-		   std::function<void(const HttpResponsePtr&)>&& cb)
-		{
+	.enableRunAsDaemon()
+	.setThreadNum(std::thread::hardware_concurrency())
+	.setClientMaxBodySize(128 * 1024)
+	.registerHandler("/bad-word-filter",
+		[](const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& cb) {
 			Json::Value body;
 
-			if (req->getJsonObject())
+			if (req->getJsonObject()) {
 				body = *req->getJsonObject();
+			}
 
 			std::string content = body.get("content", "").asString();
 
 			char repl = '#';
 			auto censor_char = body.get("censor-character", "#").asString();
-			if (!censor_char.empty())
+			if (!censor_char.empty()) {
 				repl = censor_char[0];
+			}
 
 			std::vector<std::string> langs;
 
 			if (body.isMember("languages")) {
-				for (const auto& l : body["languages"])
+				for (const auto& l : body["languages"]) {
 					langs.push_back(l.asString());
+				}
 			}
 
 			auto censored = censor(content, repl, langs);
@@ -182,7 +175,7 @@ int main()
 			auto resp = HttpResponse::newHttpJsonResponse(reply);
 			cb(resp);
 		},
-		{Post});
+	{Post});
 
 	app().addListener("127.0.0.1", 6970);
 	app().run();

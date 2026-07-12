@@ -18,7 +18,8 @@
  *
  ************************************************************************************/
 #pragma once
-
 #include <string>
 
-void strip_zero_width(std::string& s);
+void normalise_english(std::string& text);
+
+void normalise(std::string& s);

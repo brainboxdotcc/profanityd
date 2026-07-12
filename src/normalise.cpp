@@ -17,8 +17,31 @@
  * limitations under the License.
  *
  ************************************************************************************/
-#pragma once
+#include "normalise.h"
+#include "lowercase.h"
+#include "strip_zero_width.h"
+#include "leetspeak.h"
+#include "collapse_repeated.h"
+#include "accent_flatten.h"
+#include "homoglyphs.h"
+#include "strip_zalgo.h"
+#include "strip_formatting.h"
 
-#include <string>
+void normalise_english(std::string& text) {
+	strip_zero_width(text);
+	strip_zalgo(text);
+	strip_formatting(text);
+	fold_homoglyphs(text);
+	flatten_accents(text);
+	lowercase(text);
+	leetspeak(text);
+	collapse_repeated(text);
+}
 
-void strip_zero_width(std::string& s);
+void normalise(std::string& s) {
+	lowercase(s);
+	strip_zero_width(s);
+	strip_formatting(s);
+	leetspeak(s);
+	collapse_repeated(s);
+}

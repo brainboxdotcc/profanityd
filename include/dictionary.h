@@ -18,7 +18,8 @@
  *
  ************************************************************************************/
 #pragma once
-
+#include <unordered_set>
 #include <string>
+#include <unordered_map>
 
-void strip_zero_width(std::string& s);
+void load_dictionaries(std::unordered_set<std::string> all_words, std::unordered_map<std::string, std::unordered_set<std::string>> lang_words);

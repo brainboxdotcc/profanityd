@@ -1,76 +1,15 @@
 #include <drogon/drogon.h>
-#include <filesystem>
-#include <fstream>
 #include <iostream>
 #include <unordered_map>
 #include <unordered_set>
-#include "lowercase.h"
-#include "strip_zero_width.h"
-#include "leetspeak.h"
+#include "dictionary.h"
+#include "normalise.h"
 #include "collapse_repeated.h"
-#include "accent_flatten.h"
-#include "homoglyphs.h"
-#include "strip_zalgo.h"
-#include "strip_formatting.h"
 
 using namespace drogon;
-namespace fs = std::filesystem;
 
 std::unordered_set<std::string> all_words;
 std::unordered_map<std::string, std::unordered_set<std::string>> lang_words;
-
-void normalise_english(std::string& text) {
-	strip_zero_width(text);
-	strip_zalgo(text);
-	strip_formatting(text);
-	fold_homoglyphs(text);
-	flatten_accents(text);
-	lowercase(text);
-	leetspeak(text);
-	collapse_repeated(text);
-}
-
-void normalise(std::string& s) {
-	lowercase(s);
-	strip_zero_width(s);
-	strip_formatting(s);
-	leetspeak(s);
-	collapse_repeated(s);
-}
-
-void load_dictionaries() {
-	size_t count = 0;
-
-	for (const auto& f : fs::directory_iterator("../dictionaries")) {
-		if (!f.is_regular_file() || f.path().extension() != ".txt") {
-			continue;
-		}
-		std::ifstream in(f.path());
-		if (!in) {
-			continue;
-		}
-		std::string language = f.path().stem().string();
-		auto& dict = lang_words[language];
-		std::string line;
-
-		while (std::getline(in, line)) {
-			if (line.empty()) {
-				continue;
-			}
-			if (language == "en") {
-				normalise_english(line);
-			} else {
-				normalise(line);
-			}
-			dict.insert(line);
-			all_words.insert(line);
-			++count;
-		}
-	}
-
-	std::cout << "Loaded " << count << " words in "
-			  << lang_words.size() << " languages\n";
-}
 
 bool contains(const std::string& word, const std::string& english_word, const std::vector<std::string>& langs) {
 	if (langs.empty()) {
@@ -78,7 +17,7 @@ bool contains(const std::string& word, const std::string& english_word, const st
 			return true;
 		}
 		const auto english = lang_words.find("en");
-		return english != lang_words.end() && english->second.find(english_word) != english->second.end();
+		return english != lang_words.end() && contains_with_reduced_repeats(english->second, english_word);
 	}
 
 	for (const auto& lang : langs) {
@@ -87,9 +26,14 @@ bool contains(const std::string& word, const std::string& english_word, const st
 		if (dictionary == lang_words.end()) {
 			continue;
 		}
+
 		const auto& candidate = lang == "en" ? english_word : word;
 
 		if (dictionary->second.find(candidate) != dictionary->second.end()) {
+			return true;
+		}
+
+		if (lang == "en" && contains_with_reduced_repeats(dictionary->second, candidate)) {
 			return true;
 		}
 	}
@@ -136,7 +80,7 @@ std::string censor(const std::string& text, char replacement, const std::vector<
 
 int main() {
 
-	load_dictionaries();
+	load_dictionaries(all_words, lang_words);
 
 	app()
 	.enableRunAsDaemon()

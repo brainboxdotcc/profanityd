@@ -30,7 +30,7 @@ Dictionary files are loaded from the `dictionaries` directory at startup. You mu
 
 ## Reloading
 
-To reload the dicationaries without restarting the daemon, send the daemon a `SIGHUP`.
+To reload the dictionaries without restarting the daemon, send the daemon a `SIGHUP`.
 
 ## Comparison to Neutrino
 

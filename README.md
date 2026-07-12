@@ -28,6 +28,10 @@ This daemon is intended to run on localhost behind trusted applications. It is n
 
 Dictionary files are loaded from the `dictionaries` directory at startup. You must source your own bad word dictionaries. The expected format is one UTF-8 word per line.
 
+## Reloading
+
+To reload the dicationaries without restarting the daemon, send the daemon a `SIGHUP`.
+
 ## Comparison to Neutrino
 
 | Technique                | Neutrino                        | profanityd |

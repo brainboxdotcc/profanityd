@@ -18,8 +18,16 @@
  *
  ************************************************************************************/
 #pragma once
-#include <unordered_set>
+#include <csignal>
+#include <shared_mutex>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
-void load_dictionaries(std::unordered_set<std::string> all_words, std::unordered_map<std::string, std::unordered_set<std::string>> lang_words);
+extern std::shared_mutex dictionaries_mutex;
+
+bool load_dictionaries(std::unordered_set<std::string>& all_words, std::unordered_map<std::string, std::unordered_set<std::string>>& lang_words);
+
+bool install_dictionary_reload_handler();
+
+void process_dictionary_reload(std::unordered_set<std::string>& all_words, std::unordered_map<std::string, std::unordered_set<std::string>>& lang_words);

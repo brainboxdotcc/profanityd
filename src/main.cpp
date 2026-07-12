@@ -12,6 +12,7 @@ std::unordered_set<std::string> all_words;
 std::unordered_map<std::string, std::unordered_set<std::string>> lang_words;
 
 bool contains(const std::string& word, const std::string& english_word, const std::vector<std::string>& langs) {
+	std::shared_lock<std::shared_mutex> lock(dictionaries_mutex);
 	if (langs.empty()) {
 		if (all_words.find(word) != all_words.end()) {
 			return true;
@@ -79,13 +80,20 @@ std::string censor(const std::string& text, char replacement, const std::vector<
 }
 
 int main() {
-
 	load_dictionaries(all_words, lang_words);
+	install_dictionary_reload_handler();
+
+	trantor::Logger::setOutputFunction([](const char*, const uint64_t){}, [](){});
 
 	app()
 	.enableRunAsDaemon()
 	.setThreadNum(std::thread::hardware_concurrency())
 	.setClientMaxBodySize(128 * 1024)
+	.registerBeginningAdvice([]() {
+		app().getLoop()->runEvery(5, []() {
+			process_dictionary_reload(all_words, lang_words);
+		});
+	})
 	.registerHandler("/bad-word-filter",
 		[](const HttpRequestPtr& req, std::function<void(const HttpResponsePtr&)>&& cb) {
 			Json::Value body;

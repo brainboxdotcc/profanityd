@@ -107,7 +107,7 @@ bool load_dictionaries(std::unordered_set<std::string>& all_words, std::unordere
 		lang_words.swap(new_lang_words);
 	}
 
-	std::cout << "Loaded " << count << " words in " << lang_words.size() << " languages";
+	std::cout << "Loaded " << count << " words in " << lang_words.size() << " languages" << std::endl;
 	return true;
 }
 

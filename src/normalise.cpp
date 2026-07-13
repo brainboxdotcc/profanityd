@@ -30,18 +30,18 @@
 void normalise_english(std::string& text) {
 	strip_zero_width(text);
 	strip_zalgo(text);
+	leetspeak(text);
 	strip_formatting(text);
 	fold_homoglyphs(text);
 	flatten_accents(text);
 	lowercase(text);
-	leetspeak(text);
 	collapse_repeated(text);
 }
 
 void normalise(std::string& s) {
 	lowercase(s);
 	strip_zero_width(s);
-	strip_formatting(s);
 	leetspeak(s);
+	strip_formatting(s);
 	collapse_repeated(s);
 }

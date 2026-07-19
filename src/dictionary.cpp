@@ -84,7 +84,8 @@ bool load_dictionaries(std::unordered_set<std::string>& all_words, std::unordere
 					normalise(line);
 				}
 
-				if (line.empty()) {
+				if (line.length() < 2) {
+					std::cout << "Omitted: " << line << "\n";
 					continue;
 				}
 
